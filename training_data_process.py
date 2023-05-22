@@ -8,13 +8,15 @@ import sift_image_normalization as norm
 #usecols gets the ra, dec, date
 supernovae_ra, supernovae_dec, supernovae_date = np.loadtxt("tns-supernovae-list.csv", delimiter=",", skiprows=1, \
     usecols=(3,4,17), max_rows=7146, unpack=True, dtype=str)
-print(supernovae_date)#test line remove
+#remove time from supernovae date so ztf api can use in search
+supernovae_date = [s.split(' ')[0] for s in supernovae_date]
+print(supernovae_date)#test line
 
 supernovae_list = list(zip(supernovae_ra, supernovae_dec, supernovae_date))
 
 #download data
 for supernova in supernovae_list:
-    z.get_ztf_data(supernova[0], supernova[1], 0.01, supernova[2])
+    z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, supernova[2])
 
 #process data into training data - normalization function needs adjustment
-norm.data_process(os.getcwd())
+#norm.data_process(os.getcwd())

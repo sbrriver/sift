@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from astropy.io import fits
 import numpy as np
 from PIL import Image
@@ -57,21 +58,46 @@ def data_process(directory):
 
     Args:
         directory (string): path to directory to search for data.
-    """    
+    """
+    processed_unsorted_data = []
+    sorted_data = defaultdict(list)
     file_list = find_fits_files(directory)
     #iterate through files and normalize
     for file in file_list:
-        #header = fits.getheader(file)
+        header = fits.getheader(file)
         try:
             image_data = fits.getdata(file)
+            try:
+                date = header['DATE']
+                location = (header['PLATERA'], header['PLATEDEC'])
+            except KeyError:
+                continue
         except TypeError:
             continue
 
-        image_name = os.path.basename(file).replace('.fits', '.jpg')
+        image_name = os.path.basename(file).replace('.fits', '.jpg')#add date to name
 
-        if not os.path.exists("training"):
-            os.makedirs("training")
-        normalize(image_data).save("training/"+image_name)
+        processed_unsorted_data.append([location, date, normalize(image_data), image_name])
+
+    if not os.path.exists("training"):
+        os.makedirs("training")
+
+    for image in processed_unsorted_data:
+        location = image[0]
+        image_with_info = tuple(image[1:])
+        sorted_data[location].append(image_with_info)
+
+    return dict(sorted_data)
+
+def data_store(normalized_images):
+    """_summary_
+
+    Args:
+        normalized_images (defaultdict): dictionary of image data, with key being location (ra, dec)
+        and value being a tuple of (date (string), normalized image (Image type), image name)
+    """
+    #go through normalized image keys and save in subfolder labelled by location. WRITE
+    return
 
 if __name__ == '__main__':
     data_process(os.getcwd())
