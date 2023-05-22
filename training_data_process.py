@@ -17,6 +17,7 @@ def date_range_generate(date):
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     start = (date_obj - timedelta(days=30)).strftime('%Y-%m-%d')
     end = (date_obj + timedelta(days=30)).strftime('%Y-%m-%d')
+    print(start, end) #test line
 
     return start, end
 
@@ -38,4 +39,4 @@ for supernova in supernovae_list:
     z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
 
 #process data into training data - normalization function needs adjustment
-#norm.data_process(os.getcwd())
+norm.data_process(os.getcwd())
