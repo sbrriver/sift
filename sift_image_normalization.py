@@ -67,20 +67,14 @@ def data_process(directory):
         header = fits.getheader(file)
         try:
             image_data = fits.getdata(file)
-            try:
-                date = header['DATE']
-                location = (header['PLATERA'], header['PLATEDEC'])
-            except KeyError:
-                continue
+            date = header['DATE']
+            location = (header['PLATERA'], header['PLATEDEC'])
         except TypeError:
             continue
 
-        image_name = os.path.basename(file).replace('.fits', '.jpg')#add date to name
+        image_name = date + os.path.basename(file).replace('.fits', '.jpg')
 
         processed_unsorted_data.append([location, date, normalize(image_data), image_name])
-
-    if not os.path.exists("training"):
-        os.makedirs("training")
 
     for image in processed_unsorted_data:
         location = image[0]
@@ -90,15 +84,19 @@ def data_process(directory):
     return dict(sorted_data)
 
 def data_store(normalized_images):
-    """_summary_
+    """Go through normalized images and save in subfolder labelled by location.
 
     Args:
         normalized_images (defaultdict): dictionary of image data, with key being location (ra, dec)
         and value being a tuple of (date (string), normalized image (Image type), image name)
     """
-    #go through normalized image keys and save in subfolder labelled by location. WRITE
-    #can just do ImageType.save("training/"+image_name), just add in subfolder bit, etc
-    return
+    if not os.path.exists("training"):
+        os.makedirs("training")
+
+    for location in normalized_images.keys():
+        image = normalized_images[location][1]
+        image_name = normalized_images[location][2]
+        image.save("training/"+str(location)+"/"+image_name)
 
 if __name__ == '__main__':
     processed_data = data_process(os.getcwd())
