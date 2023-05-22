@@ -35,25 +35,43 @@ def normalize(img_dat):
     image = Image.fromarray(image_data_jpg, 'L')
     return image
 
-#find all .fits files
-fits_files = []
-for root, dirs, files in os.walk(os.getcwd()):
-    for file in files:
-        if file.endswith(".fits"):
-            fits_files.append(os.path.join(root, file))
+def find_fits_files(directory):
+    """Find all .fits files in given directory.
 
-result_image_data = []
+    Args:
+        directory (string): path to directory to search. Generally pass in current working directory.
 
-#iterate through files and normalize
-for file in fits_files:
-    #header = fits.getheader(file)
-    try:
-        image_data = fits.getdata(file)
-    except TypeError:
-        continue
+    Returns:
+        list: list of paths to fits files.
+    """
+    fits_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".fits"):
+                fits_files.append(os.path.join(root, file))
 
-    image_name = os.path.basename(file).replace('.fits', '.jpg')
+    return fits_files
 
-    if not os.path.exists("training"):
-        os.makedirs("training")
-    normalize(image_data).save("training/"+image_name)
+def data_process(directory):
+    """Produces black and white jpgs from all fits files in given directory.
+
+    Args:
+        directory (string): path to directory to search for data.
+    """    
+    file_list = find_fits_files(directory)
+    #iterate through files and normalize
+    for file in file_list:
+        #header = fits.getheader(file)
+        try:
+            image_data = fits.getdata(file)
+        except TypeError:
+            continue
+
+        image_name = os.path.basename(file).replace('.fits', '.jpg')
+
+        if not os.path.exists("training"):
+            os.makedirs("training")
+        normalize(image_data).save("training/"+image_name)
+
+if __name__ == '__main__':
+    data_process(os.getcwd())
