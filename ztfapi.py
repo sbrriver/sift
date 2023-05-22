@@ -2,6 +2,7 @@ import argparse
 from ztfquery import query
 from astropy.time import Time
 from lightkurve import search_targetpixelfile
+import pandas as pd
 
 def get_ztf_data(ra, dec, radius, start_date):
     """Gets specified data from the ztf database. Only can access public data.
@@ -56,3 +57,9 @@ if __name__ == '__main__':
         databases[args.database](args.ra, args.dec, args.radius, args.start_date)
     except Exception as e:
         print(f'Error retrieving objects: {e}')
+
+known_supernovae = pd.read_csv('knownsn.csv')
+ra = known_supernovae['RA']
+dec = known_supernovae['DEC']
+
+get_ztf_data(ra,dec,0.000277778,'2000-01-01')
