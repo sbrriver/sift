@@ -5,7 +5,7 @@ from astropy.time import Time
 import lightkurve as lk
 import pandas as pd
 
-def get_ztf_data(ra, dec, radius, start_date):
+def get_ztf_data(ra, dec, radius, start_date, end_date):
     """Gets specified data from the ztf database. Only can access public data.
 
     Args:
@@ -13,17 +13,19 @@ def get_ztf_data(ra, dec, radius, start_date):
         dec (float): declination
         radius (float): radius of region of sky to search, with center at (ra, dec), in arcsec
         start_date (str): starting date to start search for
+        end_date (str): end date of time to search in
     """
     zquery = query.ZTFQuery()
 
     # convert start_date and end_date to MJD
     start_mjd = Time(start_date, format='iso').mjd
+    end_mjd = Time(end_date, format='iso').mjd
 
-    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=f"fid=3 and obsjd>{start_mjd}")
+    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=f"fid=3 and obsjd BETWEEN {start_mjd} AND {end_mjd}")
     zquery.download_data("sciimg.fits", show_progress=True, nprocess=1, verbose=True, \
         overwrite=False)
 
-def get_tess_data(ra, dec, radius, start_date):
+def get_tess_data(ra, dec, radius, start_date, end_date):
     """Gets specified data from the tess database. Only can access public data.
 
     Args:
@@ -31,6 +33,7 @@ def get_tess_data(ra, dec, radius, start_date):
         dec (float): declination
         radius (float): unused
         start_date (str): unused
+        end_date (str): unused
     """
     target = str(ra) + " " + str(dec)
     image_result = lk.search_tesscut(target)
@@ -55,10 +58,12 @@ if __name__ == '__main__':
         help='Database to search. Options: ztf, tess.')
     parser.add_argument('--start_date', type=str, required=True, \
         help='Start date of search in format YYYY-MM-DD.')
+    parser.add_argument('--end_date', type=str, required=True, \
+        help='End date of search in format YYYY-MM-DD.')
     args = parser.parse_args()
 
     # Call the function to retrieve the objects
     try:
-        databases[args.database](args.ra, args.dec, args.radius, args.start_date)
+        databases[args.database](args.ra, args.dec, args.radius, args.start_date, args.end_date)
     except Exception as e:
         print(f'Error retrieving objects: {e}')
