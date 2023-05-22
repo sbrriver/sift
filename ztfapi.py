@@ -33,7 +33,10 @@ def get_tess_data(ra, dec, radius, start_date):
     """
     target = str(ra) + " " + str(dec)
     pixelfile = search_targetpixelfile(target, radius=radius, mission='TESS').download()
-    pixelfile.download_all()
+    if pixelfile:
+        pixelfile.download_all()
+    else:
+        print('No objects found with given search parameters.')
 
 databases = {'ztf':get_ztf_data, 'tess':get_tess_data}
 
