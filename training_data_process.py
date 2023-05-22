@@ -1,7 +1,24 @@
 import os
+from datetime import datetime, timedelta
 import numpy as np
 import ztfapi as z
 import sift_image_normalization as norm
+
+def date_range_generate(date):
+    """Takes in date supernova occured and generates range of dates to get data from.
+    Dates are one month on either end of the date supernova occurred.
+
+    Args:
+        date (str): date supernova occurred in YYYY-MM-DD format.
+
+    Returns:
+        tuple: (start, end), where start and end are strings in YYYY-MM-DD format.
+    """
+    date_obj = datetime.strptime(date, '%Y-%m-%d')
+    start = (date_obj - timedelta(days=30)).strftime('%Y-%m-%d')
+    end = (date_obj + timedelta(days=30)).strftime('%Y-%m-%d')
+
+    return start, end
 
 #load list of supernovae
 #max_rows: all the supernovae that have a date pre-2021
@@ -14,11 +31,11 @@ supernovae_date = [s.split(' ')[0] for s in supernovae_date]
 supernovae_list = list(zip(supernovae_ra, supernovae_dec, supernovae_date))
 #create usable supernovae_list that removes any sub-list with an empty string as an element
 usable_supernovae_list = [supernova for supernova in supernovae_list if all(supernova)]
-print(usable_supernovae_list)
 
 #download data
 for supernova in supernovae_list:
-    z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, supernova[2])
+    start_date, end_date = date_range_generate(supernova[2])
+    z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
 
 #process data into training data - normalization function needs adjustment
 #norm.data_process(os.getcwd())
