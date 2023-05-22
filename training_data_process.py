@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timedelta
 import numpy as np
 import ztfapi as z
@@ -17,7 +18,6 @@ def date_range_generate(date):
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     start = (date_obj - timedelta(days=30)).strftime('%Y-%m-%d')
     end = (date_obj + timedelta(days=30)).strftime('%Y-%m-%d')
-    print(start, end) #test line
 
     return start, end
 
@@ -30,13 +30,14 @@ supernovae_ra, supernovae_dec, supernovae_date = np.genfromtxt("tns-supernovae-l
 supernovae_date = [s.split(' ')[0] for s in supernovae_date]
 
 supernovae_list = list(zip(supernovae_ra, supernovae_dec, supernovae_date))
-#create usable supernovae_list that removes any sub-list with an empty string as an element
-usable_supernovae_list = [supernova for supernova in supernovae_list if all(supernova)]
+#create usable supernovae_list that removes any sub-list without a valid date element
+pattern = r'^\d{4}-\d{2}-\d{2}$'
+usable_supernovae_list = [supernova for supernova in supernovae_list if bool(re.match(pattern, supernova[2]))]
 
 #download data
-for supernova in supernovae_list:
+for supernova in usable_supernovae_list:
     start_date, end_date = date_range_generate(supernova[2])
-    z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
+    #z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
 
 #process data into training data - normalization function needs adjustment
-norm.data_process(os.getcwd())
+#norm.data_process(os.getcwd())
