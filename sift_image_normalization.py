@@ -97,7 +97,9 @@ def data_store(normalized_images):
         and value being a tuple of (date (string), normalized image (Image type), image name)
     """
     #go through normalized image keys and save in subfolder labelled by location. WRITE
+    #can just do ImageType.save("training/"+image_name), just add in subfolder bit, etc
     return
 
 if __name__ == '__main__':
-    data_process(os.getcwd())
+    processed_data = data_process(os.getcwd())
+    data_store(processed_data)
