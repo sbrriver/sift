@@ -5,7 +5,7 @@ from astropy.time import Time
 import lightkurve as lk
 import pandas as pd
 
-def get_ztf_data(ra, dec, radius, start_date, end_date):
+def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
     """Gets specified data from the ztf database. Only can access public data.
 
     Args:
@@ -21,7 +21,7 @@ def get_ztf_data(ra, dec, radius, start_date, end_date):
     start_mjd = Time(start_date, format='iso').mjd
     end_mjd = Time(end_date, format='iso').mjd
 
-    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=f"fid=3 and obsjd BETWEEN {start_mjd} AND {end_mjd}")
+    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=f"obsjd BETWEEN {start_mjd} AND {end_mjd}")
     zquery.download_data("sciimg.fits", show_progress=True, nprocess=1, verbose=True, \
         overwrite=False)
 
