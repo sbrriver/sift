@@ -1,7 +1,8 @@
 import argparse
+import os
 from ztfquery import query
 from astropy.time import Time
-from lightkurve import search_targetpixelfile
+import lightkurve as lk
 import pandas as pd
 
 def get_ztf_data(ra, dec, radius, start_date):
@@ -28,13 +29,14 @@ def get_tess_data(ra, dec, radius, start_date):
     Args:
         ra (float): right ascension
         dec (float): declination
-        radius (float): radius of region of sky to search, with center at (ra, dec), in arcsec
-        start_date (str): starting date to start search for
+        radius (float): unused
+        start_date (str): unused
     """
     target = str(ra) + " " + str(dec)
-    pixelfile = search_targetpixelfile(target, radius=radius, mission='TESS').download()
-    if pixelfile:
-        pixelfile.download_all()
+    image_result = lk.search_tesscut(target)
+    if image_result:
+        image_result.download_all(download_dir=os.getcwd())
+        print(f'{len(image_result)} images downloaded.')
     else:
         print('No objects found with given search parameters.')
 
@@ -60,9 +62,3 @@ if __name__ == '__main__':
         databases[args.database](args.ra, args.dec, args.radius, args.start_date)
     except Exception as e:
         print(f'Error retrieving objects: {e}')
-
-known_supernovae = pd.read_csv('knownsn.csv')
-ra = known_supernovae['RA']
-dec = known_supernovae['DEC']
-
-get_ztf_data(ra,dec,0.000277778,'2000-01-01')
