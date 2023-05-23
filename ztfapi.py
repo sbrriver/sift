@@ -18,10 +18,11 @@ def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
     zquery = query.ZTFQuery()
 
     # convert start_date and end_date to MJD
-    start_mjd = Time(start_date, format='iso').mjd
-    end_mjd = Time(end_date, format='iso').mjd
+    start_mjd = Time(start_date, format='iso').jd
+    end_mjd = Time(end_date, format='iso').jd
 
-    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=f"obsjd BETWEEN {start_mjd} AND {end_mjd}")
+    search = f"obsjd BETWEEN {start_mjd} and {end_mjd}"
+    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=search)
     zquery.download_data("sciimg.fits", show_progress=True, nprocess=1, verbose=True, \
         overwrite=False)
 
