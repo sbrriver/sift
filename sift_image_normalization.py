@@ -69,12 +69,13 @@ def data_process(directory):
             image_data = fits.getdata(file)
             date = header['OBSMJD']
             location = (header['RA'], header['DEC'])
+            filter = header['FILTER']
         except KeyError:#in here to handle cases when file doesn't have date/ra/dec in header
             continue
 
         image_name = str(date) + os.path.basename(file).replace('.fits', '.jpg')
 
-        processed_unsorted_data.append([location, date, normalize(image_data), image_name])
+        processed_unsorted_data.append([location, date, normalize(image_data), image_name, filter])
 
     for image in processed_unsorted_data:
         location = image[0]
@@ -98,9 +99,12 @@ def data_store(normalized_images):
         if not os.path.exists(location_path):
             os.makedirs(location_path)
         for observation in normalized_images[location]:
+            filter_path = location_path + "/" + observation[3]
+            if not os.path.exists(filter_path):
+                os.makedirs(filter_path)
             image = observation[1]
             image_name = observation[2]
-            image.save(location_path + "/" + image_name)
+            image.save(filter_path + "/" + image_name)
 
 if __name__ == '__main__':
     processed_data = data_process(os.getcwd())
