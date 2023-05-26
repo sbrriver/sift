@@ -7,7 +7,7 @@ import sift_image_normalization as norm
 
 def date_range_generate(date):
     """Takes in date supernova occured and generates range of dates to get data from.
-    Dates are one month on either end of the date supernova occurred.
+    Dates are 30 days on either end of the date supernova occurred.
 
     Args:
         date (str): date supernova occurred in YYYY-MM-DD format.
@@ -35,9 +35,13 @@ pattern = r'^\d{4}-\d{2}-\d{2}$'
 usable_supernovae_list = [supernova for supernova in supernovae_list if bool(re.match(pattern, supernova[2]))]
 
 #download data
+public_data_end = datetime(2021, 1, 20)
+public_data_start = datetime(2018, 3, 20)
 for supernova in usable_supernovae_list:
-    start_date, end_date = date_range_generate(supernova[2])
-    #z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
+    supernova_date = datetime.strptime(supernova[2], '%Y-%m-%d')
+    if supernova_date < public_data_end and supernova_date > public_data_start:
+        start_date, end_date = date_range_generate(supernova[2])
+        z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
 
 #process data into training data - normalization function needs adjustment
-#norm.data_process(os.getcwd())
+norm.data_process(os.getcwd())
