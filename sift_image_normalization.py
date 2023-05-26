@@ -67,12 +67,12 @@ def data_process(directory):
         header = fits.getheader(file)
         try:
             image_data = fits.getdata(file)
-            date = header['DATE']
-            location = (header['PLATERA'], header['PLATEDEC'])
-        except TypeError:
+            date = header['OBSMJD']
+            location = (header['RA'], header['DEC'])
+        except KeyError:#in here to handle cases when file doesn't have date/ra/dec in header
             continue
 
-        image_name = date + os.path.basename(file).replace('.fits', '.jpg')
+        image_name = str(date) + os.path.basename(file).replace('.fits', '.jpg')
 
         processed_unsorted_data.append([location, date, normalize(image_data), image_name])
 
@@ -94,9 +94,13 @@ def data_store(normalized_images):
         os.makedirs("training")
 
     for location in normalized_images.keys():
-        image = normalized_images[location][1]
-        image_name = normalized_images[location][2]
-        image.save("training/"+str(location)+"/"+image_name)
+        location_path = "training/" + 'ra_'+location[0].replace(':','-').replace('+','p') + 'dec_'+location[1].replace(':','-').replace('+','p')
+        if not os.path.exists(location_path):
+            os.makedirs(location_path)
+        for observation in normalized_images[location]:
+            image = observation[1]
+            image_name = observation[2]
+            image.save(location_path + "/" + image_name)
 
 if __name__ == '__main__':
     processed_data = data_process(os.getcwd())
