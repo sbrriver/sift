@@ -35,7 +35,7 @@ pattern = r'^\d{4}-\d{2}-\d{2}$'
 usable_supernovae_list = [supernova for supernova in supernovae_list if bool(re.match(pattern, supernova[2]))]
 
 #download data
-public_data_end = datetime(2021, 1, 20)
+public_data_end = datetime(2023, 3, 4)
 public_data_start = datetime(2018, 3, 20)
 for supernova in usable_supernovae_list:
     supernova_date = datetime.strptime(supernova[2], '%Y-%m-%d')
