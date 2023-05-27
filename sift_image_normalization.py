@@ -66,7 +66,10 @@ def data_process(directory):
     for file in file_list:
         header = fits.getheader(file)
         try:
-            image_data = fits.getdata(file)
+            try:
+                image_data = fits.getdata(file)
+            except TypeError:#handles when file not entirely downloaded, etc
+                continue
             date = header['OBSMJD']
             location = (header['RA'], header['DEC'])
             filter = header['FILTER']
