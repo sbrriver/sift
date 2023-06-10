@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import ztfapi as z
 import sift_image_normalization as norm
+import pandas as pd
 
 def date_range_generate(date):
     """Takes in date supernova occured and generates range of dates to get data from.
@@ -24,8 +25,10 @@ def date_range_generate(date):
 #load list of supernovae
 #max_rows: all the supernovae that have a date pre-2021
 #usecols gets the ra, dec, date
-supernovae_ra, supernovae_dec, supernovae_date = np.genfromtxt("tns-supernovae-list.csv", delimiter=",", skip_header=1, \
-    usecols=(3,4,17), max_rows=7146, unpack=True, dtype=str, filling_values=0, encoding='mac-roman', invalid_raise=False)
+supernovae_table = pd.read_csv("only sn - tns_public_objects.csv", delimiter=',', usecols=('ra', 'declination', 'time_received'), nrows=7146, dtype=str, encoding='mac-roman', on_bad_lines='warn')
+supernovae_ra = supernovae_table['ra'].to_numpy()
+supernovae_dec = supernovae_table['declination'].to_numpy()
+supernovae_date = supernovae_table['time_received'].to_numpy()
 #remove time from supernovae date so ztf api can use in search
 supernovae_date = [s.split(' ')[0] for s in supernovae_date]
 
@@ -42,6 +45,6 @@ for supernova in usable_supernovae_list:
     if supernova_date < public_data_end and supernova_date > public_data_start:
         start_date, end_date = date_range_generate(supernova[2])
         z.get_ztf_data(float(supernova[0]), float(supernova[1]), 0.01, start_date, end_date)
-
+        
 #process data into training data - normalization function needs adjustment
 norm.data_process(os.getcwd())
