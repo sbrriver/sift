@@ -29,10 +29,21 @@ def normalize(img_dat):
     """
     maxval = np.max(img_dat)
     minval = np.min(img_dat)
-    result = data_scale(img_dat, minval, maxval)
-
+    result = data_scale(img_dat, minval, maxval)[::-1,:]
+    
     #convert to jpg
-    image_data_jpg = (255*result).astype(np.uint8)[::-1,:]
+    """Subtract a number based on the average brightness of the image to remove faint brightness across image. Scale values above this to be brighter."""
+    zero_value_limit = np.mean(result.mean(axis=1)) * 240
+    scale_factor = 3000
+    image_data_jpg = (255*result - zero_value_limit) * scale_factor
+    """Clip the data to be within 0 to 255 before changing to 8 bit so values above 255 don't flip to lower values."""
+    image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    """If the average brightness is over threshold increase the zero_value_limit and rerun code. Lower threshold means this runs more and will take longer."""
+    threshold = 80
+    while np.mean(image_data_jpg.mean(axis=1)) > threshold:
+        zero_value_limit += 0.02
+        image_data_jpg = (255*result - zero_value_limit) * scale_factor
+        image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     image = Image.fromarray(image_data_jpg, 'L')
     return image
 
