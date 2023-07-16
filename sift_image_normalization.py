@@ -29,23 +29,63 @@ def normalize(img_dat):
     """
     maxval = np.max(img_dat)
     minval = np.min(img_dat)
-    result = data_scale(img_dat, minval, maxval)[::-1,:]
+    result = data_scale(img_dat, minval, maxval)
     
     #convert to jpg
-    """Subtract a number based on the average brightness of the image to remove faint brightness across image. Scale values above this to be brighter."""
-    zero_value_limit = np.mean(result.mean(axis=1)) * 240
-    scale_factor = 3000
-    image_data_jpg = (255*result - zero_value_limit) * scale_factor
-    """Clip the data to be within 0 to 255 before changing to 8 bit so values above 255 don't flip to lower values."""
-    image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
-    """If the average brightness is over threshold increase the zero_value_limit and rerun code. Lower threshold means this runs more and will take longer."""
-    threshold = 80
-    while np.mean(image_data_jpg.mean(axis=1)) > threshold:
-        zero_value_limit += 0.02
-        image_data_jpg = (255*result - zero_value_limit) * scale_factor
-        image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
-    image = Image.fromarray(image_data_jpg, 'L')
-    return image
+    """scaling based on white level of image"""
+    # """Subtract a number based on the average brightness of the image to remove faint brightness across image. Scale values above this to be brighter."""
+    # zero_value_limit = np.mean(result.mean(axis=1)) * 240
+    # scale_factor = 3000
+    # image_data_jpg = (255*result - zero_value_limit) * scale_factor
+    # """Clip the data to be within 0 to 255 before changing to 8 bit so values above 255 don't flip to lower values."""
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # """If the average brightness is over threshold increase the zero_value_limit and rerun code. Lower threshold means this runs more and will take longer."""
+    # threshold = 80
+    # while np.mean(image_data_jpg.mean(axis=1)) > threshold:
+    #     zero_value_limit += 0.02
+    #     image_data_jpg = (255*result - zero_value_limit) * scale_factor
+    #     image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+    
+    """other methods"""
+    """log"""
+    # scale_factor = 5000
+    # image_data_jpg = np.log(scale_factor * result + 1) / np.log(scale_factor) * 255
+    # print(image_data_jpg)
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+    
+    """pow"""
+    # scale_factor = 1000
+    # image_data_jpg = (scale_factor ** result - 1) * 255
+    # print(image_data_jpg)
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+    
+    """sqrt"""
+    # image_data_jpg = np.sqrt(result) * 500
+    # print(image_data_jpg)
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+    
+    """square""" 
+    # image_data_jpg = result ** 2 * 1000000
+    # print(image_data_jpg)
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+    
+    """asinh"""
+    # scale_factor = 1000
+    # image_data_jpg = scale_factor * np.sinh(result * 10) / 3
+    # print(image_data_jpg)
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
 
 def find_fits_files(directory):
     """Find all .fits files in given directory.
