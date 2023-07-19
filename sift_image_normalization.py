@@ -3,6 +3,7 @@ from collections import defaultdict
 from astropy.io import fits
 import numpy as np
 from PIL import Image
+import timeit
 
 def data_scale(img_dat, minval, maxval):
     """Scale image data to [0, 1] range.
@@ -30,10 +31,26 @@ def normalize(img_dat):
     maxval = np.max(img_dat)
     minval = np.min(img_dat)
     result = data_scale(img_dat, minval, maxval)
-    
+
     #convert to jpg
+    """percentile"""
+    q = 45
+    qth_percentile = np.percentile(result, [q])
+    image_data_jpg = (result - qth_percentile) * 500000
+    image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    image = Image.fromarray(image_data_jpg, 'L')
+    return image
+   
+    """sqrt percentile"""
+    # q = 65
+    # qth_percentile = np.percentile(result, [q])
+    # image_data_jpg = (np.sqrt(result) - np.sqrt(qth_percentile)) * 200000
+    # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
+    # image = Image.fromarray(image_data_jpg, 'L')
+    # return image
+
     """scaling based on white level of image"""
-    # """Subtract a number based on the average brightness of the image to remove faint brightness across image. Scale values above this to be brighter."""
+    """Subtract a number based on the average brightness of the image to remove faint brightness across image. Scale values above this to be brighter."""
     # zero_value_limit = np.mean(result.mean(axis=1)) * 240
     # scale_factor = 3000
     # image_data_jpg = (255*result - zero_value_limit) * scale_factor
@@ -48,11 +65,9 @@ def normalize(img_dat):
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
     
-    """other methods"""
     """log"""
     # scale_factor = 5000
     # image_data_jpg = np.log(scale_factor * result + 1) / np.log(scale_factor) * 255
-    # print(image_data_jpg)
     # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
@@ -60,21 +75,18 @@ def normalize(img_dat):
     """pow"""
     # scale_factor = 1000
     # image_data_jpg = (scale_factor ** result - 1) * 255
-    # print(image_data_jpg)
     # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
     
     """sqrt"""
     # image_data_jpg = np.sqrt(result) * 500
-    # print(image_data_jpg)
     # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
     
     """square""" 
     # image_data_jpg = result ** 2 * 1000000
-    # print(image_data_jpg)
     # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
@@ -82,7 +94,6 @@ def normalize(img_dat):
     """asinh"""
     # scale_factor = 1000
     # image_data_jpg = scale_factor * np.sinh(result * 10) / 3
-    # print(image_data_jpg)
     # image_data_jpg = np.clip(image_data_jpg, 0, 255).astype(np.uint8)
     # image = Image.fromarray(image_data_jpg, 'L')
     # return image
@@ -163,3 +174,4 @@ def data_store(normalized_images):
 if __name__ == '__main__':
     processed_data = data_process(os.getcwd())
     data_store(processed_data)
+    print("Time(seconds) to execute statement: " + str(timeit.timeit("data_process(os.getcwd())", setup="from __main__ import data_process, os", number=1)))
