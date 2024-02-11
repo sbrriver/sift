@@ -4,6 +4,7 @@ from ztfquery import query
 from astropy.time import Time
 import lightkurve as lk
 import pandas as pd
+from datetime import datetime, timedelta
 
 def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
     """Gets specified data from the ztf database. Only can access public data.
@@ -16,16 +17,47 @@ def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
         end_date (str): end date of time to search in
     """
     zquery = query.ZTFQuery()
+    if type(start_date) == str: #runs if you just run ztfapi.py like before
+        # convert start_date and end_date to MJD
+        start_mjd = Time(start_date, format='iso').jd
+        end_mjd = Time(end_date, format='iso').jd
 
-    # convert start_date and end_date to MJD
-    start_mjd = Time(start_date, format='iso').jd
-    end_mjd = Time(end_date, format='iso').jd
+        search = f"obsjd BETWEEN {start_mjd} and {end_mjd}"
+        zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=search)
+        zquery.download_data("sciimg.fits", show_progress=True, nprocess=1, verbose=True, \
+            overwrite=False)
+    
+    elif type(start_date) == tuple: #runs if you run training_data_process.py
+        """Only downloads r-band filter"""
+        print("\n ZTFAPI running \n")
+        
+        """SN before"""
+        start_mjd = Time(start_date[0], format='iso').jd
+        end_mjd = Time(start_date[1], format='iso').jd
+        search = f"fid=2 and obsjd BETWEEN {start_mjd} and {end_mjd}"
+        zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=search)
+        if len(zquery.metatable) != 0: 
+            zquery.download_data("sciimg.fits", indexes=[0], show_progress=True, nprocess=1, verbose=True, \
+            overwrite=False)
+        else:
+            return False
+        file_start = zquery.get_local_data("sciimg.fits")[0]
+        
+        """SN after"""
+        start_mjd = Time(end_date[0], format='iso').jd
+        end_mjd = Time(end_date[1], format='iso').jd
+        search = f"fid=2 and obsjd BETWEEN {start_mjd} and {end_mjd}"
+        zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=search)
+        if len(zquery.metatable) != 0: 
+            zquery.download_data("sciimg.fits", indexes=[len(zquery.metatable) - 1], show_progress=True, nprocess=1, verbose=True, \
+            overwrite=False)
+        else:
+            return False
+        file_end = zquery.get_local_data("sciimg.fits")[-1]
 
-    search = f"obsjd BETWEEN {start_mjd} and {end_mjd}"
-    zquery.load_metadata(radec=[ra,dec], size=radius, sql_query=search)
-    zquery.download_data("sciimg.fits", show_progress=True, nprocess=1, verbose=True, \
-        overwrite=False)
-
+        file_paths = (file_start, file_end)
+        return file_paths
+        
 def get_tess_data(ra, dec, radius, start_date, end_date):
     """Gets specified data from the tess database. Only can access public data.
 
