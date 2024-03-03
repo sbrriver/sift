@@ -5,6 +5,7 @@ from astropy.time import Time
 import lightkurve as lk
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 
 def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
     """Gets specified data from the ztf database. Only can access public data.
@@ -57,6 +58,28 @@ def get_ztf_data(ra, dec, radius, start_date, end_date, filter=None):
 
         file_paths = (file_start, file_end)
         return file_paths
+    
+def bulk_get_ztf_data(start_date, end_date):
+    zquery = query.ZTFQuery()
+    # convert start_date and end_date to MJD
+    start_mjd = Time(start_date, format='iso').jd
+    end_mjd = Time(end_date, format='iso').jd
+
+    search = f"fid=2 AND obsjd BETWEEN {start_mjd} and {end_mjd} AND seeing<2"
+    # search = f"filtercode='zg' and seeing<2 and obsjd BETWEEN {jdstart} AND {jdend} AND field=600 AND ccdid=8 AND qid=2")"
+    
+    start_time = time.time()
+    zquery.load_metadata(kind="sci", sql_query=search)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print("Time to load metadata: " + str(elapsed_time) + ' seconds')
+    
+    start_time = time.time()
+    zquery.download_data("sciimg.fits", show_progress=True, nprocess=16, verbose=True, \
+        overwrite=False)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print("Time to download metadata: " + str(elapsed_time) + ' seconds')
         
 def get_tess_data(ra, dec, radius, start_date, end_date):
     """Gets specified data from the tess database. Only can access public data.
@@ -78,17 +101,32 @@ def get_tess_data(ra, dec, radius, start_date, end_date):
 
 databases = {'ztf':get_ztf_data, 'tess':get_tess_data}
 
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser(description=\
+#         'Retrieve ZTF objects within a certain area and time range.')
+#     parser.add_argument('--ra', type=float, required=True, \
+#         help='Right ascension of center of search area.')
+#     parser.add_argument('--dec', type=float, required=True, \
+#         help='Declination of center of search area.')
+#     parser.add_argument('--radius', type=float, required=True, \
+#         help='Radius of search area in degrees.')
+#     parser.add_argument('--database', type=str, required=True, \
+#         help='Database to search. Options: ztf, tess.')
+#     parser.add_argument('--start_date', type=str, required=True, \
+#         help='Start date of search in format YYYY-MM-DD.')
+#     parser.add_argument('--end_date', type=str, required=True, \
+#         help='End date of search in format YYYY-MM-DD.')
+#     args = parser.parse_args()
+
+#     # Call the function to retrieve the objects
+#     try:
+#         databases[args.database](args.ra, args.dec, args.radius, args.start_date, args.end_date)
+#     except Exception as e:
+#         print(f'Error retrieving objects: {e}')
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=\
         'Retrieve ZTF objects within a certain area and time range.')
-    parser.add_argument('--ra', type=float, required=True, \
-        help='Right ascension of center of search area.')
-    parser.add_argument('--dec', type=float, required=True, \
-        help='Declination of center of search area.')
-    parser.add_argument('--radius', type=float, required=True, \
-        help='Radius of search area in degrees.')
-    parser.add_argument('--database', type=str, required=True, \
-        help='Database to search. Options: ztf, tess.')
     parser.add_argument('--start_date', type=str, required=True, \
         help='Start date of search in format YYYY-MM-DD.')
     parser.add_argument('--end_date', type=str, required=True, \
@@ -97,6 +135,6 @@ if __name__ == '__main__':
 
     # Call the function to retrieve the objects
     try:
-        databases[args.database](args.ra, args.dec, args.radius, args.start_date, args.end_date)
+        bulk_get_ztf_data(args.start_date, args.end_date)
     except Exception as e:
         print(f'Error retrieving objects: {e}')
